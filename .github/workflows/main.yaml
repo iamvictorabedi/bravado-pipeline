@@ -15,7 +15,7 @@ env:
 
 
 jobs:
-  test:
+  package_build:
 
     runs-on: ubuntu-latest
 
