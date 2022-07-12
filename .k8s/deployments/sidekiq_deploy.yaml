@@ -1,0 +1,49 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: sidekiq-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bravado-app
+      tier: queue
+  template:
+    metadata:
+      name: sidekiq
+      labels:
+        app: bravado-app
+        tier: queue
+    spec:
+      containers:
+        - name: sidekiq
+          image: iamvictorabedi/bravado:latest
+          args: ["sidekiq -C config/initializers/sidekiq.rb"]
+          env:
+            - name: DATABASE_NAME
+              value: "car_market_production"
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_URL
+              value: "postgres"
+            - name: DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: "db-user"
+                  key: "username"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "db-user-pass"
+                  key: "password"
+            - name: RAILS_APP
+              value: "production"
+            - name: REDIS_URL
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: "secret-key-base"
+                  key: "secret-key-base"

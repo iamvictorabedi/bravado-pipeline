@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bravado-app
+  labels:
+    app: bravado-app
+spec:
+  ports:
+    - port: 3000
+  selector:
+    app: bravado-app

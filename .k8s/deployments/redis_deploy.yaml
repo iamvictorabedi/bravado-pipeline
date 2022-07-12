@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bravado-app
+  template:
+    metadata:
+      name: redis
+      labels:
+        app: bravado-app
+    spec:
+      containers:
+        - name: redis
+          image: redis:3.2-alpine
+          ports:
+            - containerPort: 6379

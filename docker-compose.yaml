@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+
+  #Job to run db jobs
+  db_setup:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=car_market_development
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecurepass
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=Qy6VTnREtzwBbzgvxY2LJA5QQwFNex4wUtj2qNTTnSXtHykdZM
+    command: "bin/rails db:migrate"
+
+
+  postgres:
+    image: postgres:9.6-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecurepass
+      - POSTGRES_DB=rails-kube-demo_production
+      - PGDATA=/var/lib/postgresql/data
+
+  db_data:
+    image: postgres:9.6-alpine
+    volumes:
+      - /var/lib/postgresql/data
+    command: /bin/true
+
+
+
+  sidekiq:
+    build:  .
+    command: "bin/bundle exec sidekiq -C config/sidekiq.yml"
+    environment:
+      - REDIS_URL=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=car_market_development
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecurepass
+    depends_on:
+      - redis
+
+
+  redis:
+    image: redis:5.0-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: "bin/bundle exec rails s -p 3000 -b 0.0.0.0"
+    depends_on:
+      - redis
+      - postgres
+      - db_setup
+    environment:
+      - RAILS_ENV=development
+      - REDIS_URL=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=car_market_development
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=mysecurepass
+    volumes:
+      - .:/bravado_ror
+    ports:
+      - "3000:3000"
